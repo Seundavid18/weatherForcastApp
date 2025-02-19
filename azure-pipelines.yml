@@ -34,12 +34,17 @@ jobs:
                       --results-directory $(Build.SourcesDirectory)/TestResults
         displayName: 'Run Unit Tests (Ubuntu Only)'
 
-      - script: |
-          dotnet tool install -g dotnet-reportgenerator-globaltool
-          reportgenerator -reports:$(Build.SourcesDirectory)/TestResults/**/*.xml \
-                          -targetdir:$(Build.SourcesDirectory)/Coverage_Single \
-                          -reporttypes:Cobertura
-        displayName: 'Generate Cobertura Coverage (Single Platform)'
+    - script: |
+        dotnet tool install -g dotnet-reportgenerator-globaltool
+        reportgenerator \
+          -reports:$(Build.SourcesDirectory)/TestResults/**/*.xml \
+          -targetdir:$(Build.SourcesDirectory)/Coverage_Single \
+          -reporttypes:Cobertura \
+          -assemblyfilters:+* \
+          -classfilters:+* \
+          -filefilters:+* \
+          -reportversion:1
+      displayName: 'Generate Cobertura Coverage (Single Platform)'
 
       - task: SonarCloudPrepare@1
         inputs:
@@ -54,6 +59,10 @@ jobs:
             sonar.verbose=true
             sonar.coverageReportPaths=$(Build.SourcesDirectory)/Coverage_Single/Cobertura.xml
         displayName: 'Prepare SonarCloud (Single Platform)'
+
+      - script: |
+          grep '<coverage' $(Build.SourcesDirectory)/Coverage_Single/Cobertura.xml
+        displayName: 'Check Cobertura Version'
 
       - task: SonarCloudAnalyze@1
         displayName: 'Analyze with SonarCloud (Single Platform)'
