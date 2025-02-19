@@ -10,6 +10,9 @@ parameters:
 variables:
   buildConfiguration: 'Release'
 
+# -------------------------
+# 🏗️ Job 1: Build & Single Platform Test (if multi_platform_tests=false)
+# -------------------------
 jobs:
 - job: Build
   displayName: 'Build Project'
@@ -62,18 +65,6 @@ jobs:
           pollingTimeoutSec: '300'
         displayName: 'Publish SonarCloud Results (Single Platform)'
 
-      - task: DotNetCoreCLI@2
-        inputs:
-          command: 'publish'
-          publishWebProjects: true
-          arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)'
-          zipAfterPublish: true
-        displayName: 'Publish Application'
-
-      - publish: $(Build.ArtifactStagingDirectory)
-        artifact: drop
-        displayName: 'Publish Final Artifacts'
-
     - task: PublishPipelineArtifact@1
       condition: succeeded()
       inputs:
@@ -82,6 +73,9 @@ jobs:
       displayName: 'Publish Build Artifacts'
 
 
+# -------------------------
+# 🧪 Job 2: Matrix Tests & Coverage Merging (if multi_platform_tests=true)
+# -------------------------
 - job: Test_Analyze_Publish
   displayName: 'Test, Analyze, and Publish'
   dependsOn: Build
@@ -108,7 +102,6 @@ jobs:
         packageType: 'sdk'
         version: '9.x'
 
-    # 🧪 Platform-specific tests
     - script: |
         dotnet test --configuration $(buildConfiguration) \
                     --collect:"XPlat Code Coverage" \
@@ -119,53 +112,64 @@ jobs:
       artifact: Coverage_${{ matrix.vmImage }}
       displayName: 'Publish Coverage (${{ matrix.vmImage }})'
 
-  final:
-    steps:
-      - download: current
-        artifact: Coverage_linux
-      - download: current
-        artifact: Coverage_windows
 
-      - script: |
-          dotnet tool install -g dotnet-reportgenerator-globaltool
-          reportgenerator -reports:$(Pipeline.Workspace)/**/coverage.cobertura.xml \
-                          -targetdir:$(Build.SourcesDirectory)/merged_coverage \
-                          -reporttypes:Cobertura
-        displayName: 'Merge Coverage Reports'
+# -------------------------
+# 📊 Job 3: Merge Coverage, SonarCloud, and Publish (after matrix completes)
+# -------------------------
+- job: Merge_And_Analyze
+  displayName: 'Merge Coverage & Run SonarCloud'
+  dependsOn: Test_Analyze_Publish
+  condition: succeeded()
 
-      - task: SonarCloudPrepare@1
-        inputs:
-          SonarCloud: 'Sonarcloud'
-          organization: 'mini-bank-app'
-          scannerMode: 'CLI'
-          configMode: 'manual'
-          cliProjectKey: 'mini-bank-app_weatherforcastapp'
-          cliProjectName: 'weatherForcastApp'
-          cliSources: '.'
-          extraProperties: |
-            sonar.verbose=true
-            sonar.coverageReportPaths=$(Build.SourcesDirectory)/merged_coverage/Cobertura.xml
-        displayName: 'Prepare SonarCloud (Merged Coverage)'
+  pool:
+    vmImage: 'ubuntu-latest'
 
-      - task: SonarCloudAnalyze@1
-        displayName: 'Analyze with SonarCloud (Merged Coverage)'
+  steps:
+    - download: current
+      artifact: Coverage_linux
+    - download: current
+      artifact: Coverage_windows
 
-      - task: SonarCloudPublish@1
-        inputs:
-          pollingTimeoutSec: '300'
-        displayName: 'Publish SonarCloud Results'
+    - script: |
+        dotnet tool install -g dotnet-reportgenerator-globaltool
+        reportgenerator -reports:$(Pipeline.Workspace)/**/coverage.cobertura.xml \
+                        -targetdir:$(Build.SourcesDirectory)/merged_coverage \
+                        -reporttypes:Cobertura
+      displayName: 'Merge Coverage Reports'
 
-      - task: DotNetCoreCLI@2
-        inputs:
-          command: 'publish'
-          publishWebProjects: true
-          arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)'
-          zipAfterPublish: true
-        displayName: 'Publish Application'
+    - task: SonarCloudPrepare@1
+      inputs:
+        SonarCloud: 'Sonarcloud'
+        organization: 'mini-bank-app'
+        scannerMode: 'CLI'
+        configMode: 'manual'
+        cliProjectKey: 'mini-bank-app_weatherforcastapp'
+        cliProjectName: 'weatherForcastApp'
+        cliSources: '.'
+        extraProperties: |
+          sonar.verbose=true
+          sonar.coverageReportPaths=$(Build.SourcesDirectory)/merged_coverage/Cobertura.xml
+      displayName: 'Prepare SonarCloud (Merged Coverage)'
 
-      - publish: $(Build.ArtifactStagingDirectory)
-        artifact: drop
-        displayName: 'Publish Final Artifacts'
+    - task: SonarCloudAnalyze@1
+      displayName: 'Analyze with SonarCloud (Merged Coverage)'
+
+    - task: SonarCloudPublish@1
+      inputs:
+        pollingTimeoutSec: '300'
+      displayName: 'Publish SonarCloud Results'
+
+    - task: DotNetCoreCLI@2
+      inputs:
+        command: 'publish'
+        publishWebProjects: true
+        arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)'
+        zipAfterPublish: true
+      displayName: 'Publish Application'
+
+    - publish: $(Build.ArtifactStagingDirectory)
+      artifact: drop
+      displayName: 'Publish Final Artifacts'
 
 
 # trigger:
