@@ -1,0 +1,57 @@
+trigger:
+- main
+
+pool:
+  vmImage: 'windows-latest'
+
+variables:
+  buildConfiguration: 'Release'
+
+steps:
+- task: UseDotNet@2
+  inputs:
+    packageType: 'sdk'
+    version: '6.x'
+
+- script: |
+    dotnet restore
+    dotnet build --configuration $(buildConfiguration)
+  displayName: 'Restore and Build'
+
+- task: SonarCloudPrepare@1
+  inputs:
+    SonarCloud: 'Sonarcloud'
+    organization: 'mini-bank-app'
+    scannerMode: 'CLI'
+    configMode: 'manual'
+    cliProjectKey: 'mini-bank-app_weatherforcastapp'
+    cliProjectName: 'weatherForcastApp'
+    cliSources: '.'
+    extraProperties: |
+      sonar.verbose=true
+      sonar.javascript.lcov.reportPaths=$(Pipeline.Workspace)/Coverage_Linux/lcov.info,$(Pipeline.Workspace)/Coverage_Windows/lcov.info
+      sonar.coverageReportPaths=$(Pipeline.Workspace)/Coverage_Linux/cobertura-coverage.xml,$(Pipeline.Workspace)/Coverage_Windows/cobertura-coverage.xml
+      sonar.exclusions=**/*.flow
+  
+- task: SonarCloudAnalyze@1
+  displayName: "Analyze with SonarCloud"
+
+- task: SonarCloudPublish@1
+  inputs:
+    pollingTimeoutSec: '300'
+  displayName: 'Publish SonarCloud Results'
+
+- script: |
+    dotnet test --configuration $(buildConfiguration) --no-build --verbosity normal
+  displayName: 'Run Tests'
+
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'publish'
+    publishWebProjects: true
+    arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)'
+    zipAfterPublish: true
+
+- publish: $(Build.ArtifactStagingDirectory)
+  artifact: drop
+
