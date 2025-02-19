@@ -26,8 +26,13 @@ steps:
     dotnet tool install -g dotnet-reportgenerator-globaltool
     reportgenerator -reports:$(Build.SourcesDirectory)/TestResults/**/*.xml \
                     -targetdir:$(Build.SourcesDirectory)/Coverage_Linux \
-                    -reporttypes:Cobertura
+                    -reporttypes:Cobertura \
+                    -assemblyfilters:+* -filefilters:+* -classfilters:+*
   displayName: 'Convert Coverage to Cobertura'
+
+- script: |
+    head -n 10 $(Build.SourcesDirectory)/Coverage_Linux/*.xml
+  displayName: 'Inspect Coverage Report Header'
 
 - task: SonarCloudPrepare@1
   inputs:
