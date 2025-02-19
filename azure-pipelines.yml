@@ -10,9 +10,6 @@ parameters:
 variables:
   buildConfiguration: 'Release'
 
-# -------------------------
-# 🏗️ Job 1: Build & Single Platform Test (if multi_platform_tests=false)
-# -------------------------
 jobs:
 - job: Build
   displayName: 'Build Project'
@@ -29,6 +26,7 @@ jobs:
         dotnet build --configuration $(buildConfiguration)
       displayName: 'Restore and Build'
 
+    # Run unit tests on Ubuntu only if multi_platform_tests is false
     - ${{ if eq(parameters.multi_platform_tests, false) }}:
       - script: |
           dotnet test --configuration $(buildConfiguration) \
@@ -73,9 +71,6 @@ jobs:
       displayName: 'Publish Build Artifacts'
 
 
-# -------------------------
-# 🧪 Job 2: Matrix Tests & Coverage Merging (if multi_platform_tests=true)
-# -------------------------
 - job: Test_Analyze_Publish
   displayName: 'Test, Analyze, and Publish'
   dependsOn: Build
@@ -91,7 +86,7 @@ jobs:
     maxParallel: 2
 
   pool:
-    vmImage: ${{ matrix.vmImage }}
+    vmImage: $(vmImage)  # ✅ Cleaner usage
 
   steps:
     - download: current
@@ -105,19 +100,16 @@ jobs:
     - script: |
         dotnet test --configuration $(buildConfiguration) \
                     --collect:"XPlat Code Coverage" \
-                    --results-directory ${{ matrix.coverageDir }}
-      displayName: 'Run Tests on ${{ matrix.vmImage }}'
+                    --results-directory $(coverageDir)
+      displayName: 'Run Tests on $(vmImage)'
 
-    - publish: ${{ matrix.coverageDir }}
-      artifact: Coverage_${{ matrix.vmImage }}
-      displayName: 'Publish Coverage (${{ matrix.vmImage }})'
+    - publish: $(coverageDir)
+      artifact: Coverage_$(vmImage)
+      displayName: 'Publish Coverage ($(vmImage))'
 
 
-# -------------------------
-# 📊 Job 3: Merge Coverage, SonarCloud, and Publish (after matrix completes)
-# -------------------------
 - job: Merge_And_Analyze
-  displayName: 'Merge Coverage & Run SonarCloud'
+  displayName: 'Merge Coverage & Analyze with SonarCloud'
   dependsOn: Test_Analyze_Publish
   condition: succeeded()
 
@@ -126,9 +118,9 @@ jobs:
 
   steps:
     - download: current
-      artifact: Coverage_linux
+      artifact: Coverage_ubuntu-latest
     - download: current
-      artifact: Coverage_windows
+      artifact: Coverage_windows-latest
 
     - script: |
         dotnet tool install -g dotnet-reportgenerator-globaltool
@@ -157,7 +149,7 @@ jobs:
     - task: SonarCloudPublish@1
       inputs:
         pollingTimeoutSec: '300'
-      displayName: 'Publish SonarCloud Results'
+      displayName: 'Publish SonarCloud Results (Merged Coverage)'
 
     - task: DotNetCoreCLI@2
       inputs:
