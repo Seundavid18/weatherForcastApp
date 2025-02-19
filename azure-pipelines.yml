@@ -18,6 +18,17 @@ steps:
     dotnet build --configuration $(buildConfiguration)
   displayName: 'Restore and Build'
 
+- script: |
+    dotnet test --configuration $(buildConfiguration) --collect:"XPlat Code Coverage" --results-directory $(Build.SourcesDirectory)/TestResults
+  displayName: 'Run Tests with Coverage'
+
+- script: |
+    dotnet tool install -g dotnet-reportgenerator-globaltool
+    reportgenerator -reports:$(Build.SourcesDirectory)/TestResults/**/*.xml \
+                    -targetdir:$(Build.SourcesDirectory)/Coverage_Linux \
+                    -reporttypes:Cobertura
+  displayName: 'Convert Coverage to Cobertura'
+
 - task: SonarCloudPrepare@1
   inputs:
     SonarCloud: 'Sonarcloud'
@@ -29,8 +40,8 @@ steps:
     cliSources: '.'
     extraProperties: |
       sonar.verbose=true
-      sonar.javascript.lcov.reportPaths=$(Pipeline.Workspace)/Coverage_Linux/lcov.info,$(Pipeline.Workspace)/Coverage_Windows/lcov.info
-      sonar.coverageReportPaths=$(Pipeline.Workspace)/Coverage_Linux/cobertura-coverage.xml,$(Pipeline.Workspace)/Coverage_Windows/cobertura-coverage.xml
+      sonar.javascript.lcov.reportPaths=$(Pipeline.Workspace)/Coverage_Linux/lcov.info
+      sonar.coverageReportPaths=$(Build.SourcesDirectory)/Coverage_Linux/Cobertura.xml
       sonar.exclusions=**/*.flow
   
 - task: SonarCloudAnalyze@1
@@ -40,10 +51,6 @@ steps:
   inputs:
     pollingTimeoutSec: '300'
   displayName: 'Publish SonarCloud Results'
-
-- script: |
-    dotnet test --configuration $(buildConfiguration) --no-build --verbosity normal
-  displayName: 'Run Tests'
 
 - task: DotNetCoreCLI@2
   inputs:
