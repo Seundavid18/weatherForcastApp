@@ -44,7 +44,11 @@ jobs:
             -classfilters:+* \
             -filefilters:+* \
             -reportversion:1
-        displayName: 'Generate Cobertura Coverage (Single Platform)'
+        displayName: 'Generate Cobertura Coverage'
+
+      - script: |
+          grep '<coverage' $(Build.SourcesDirectory)/Coverage_Single/Cobertura.xml
+        displayName: 'Check Cobertura Version'
 
       - task: SonarCloudPrepare@1
         inputs:
@@ -56,13 +60,10 @@ jobs:
           cliProjectName: 'weatherForcastApp'
           cliSources: '.'
           extraProperties: |
-            sonar.verbose=true
-            sonar.coverageReportPaths=$(Build.SourcesDirectory)/Coverage_Single/Cobertura.xml
+            extraProperties: |
+              sonar.verbose=true
+              sonar.coverageReportPaths=**/Coverage_Single/Cobertura.xml
         displayName: 'Prepare SonarCloud (Single Platform)'
-
-      - script: |
-          grep '<coverage' $(Build.SourcesDirectory)/Coverage_Single/Cobertura.xml
-        displayName: 'Check Cobertura Version'
 
       - task: SonarCloudAnalyze@1
         displayName: 'Analyze with SonarCloud (Single Platform)'
