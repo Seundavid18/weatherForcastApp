@@ -40,9 +40,6 @@ jobs:
             -reports:$(Build.SourcesDirectory)/TestResults/**/*.xml \
             -targetdir:$(Build.SourcesDirectory)/Coverage_Single \
             -reporttypes:Cobertura \
-            -assemblyfilters:+* \
-            -classfilters:+* \
-            -filefilters:+* \
             -reportversion:1
         displayName: 'Generate Cobertura Coverage'
 
