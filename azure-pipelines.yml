@@ -34,31 +34,14 @@ jobs:
                       --results-directory $(Build.SourcesDirectory)/TestResults
         displayName: 'Run Unit Tests (Ubuntu Only)'
 
-      # - script: |
-      #     dotnet tool install -g dotnet-reportgenerator-globaltool
-      #     reportgenerator \
-      #       -reports:$(Build.SourcesDirectory)/TestResults/**/*.xml \
-      #       -targetdir:$(Build.SourcesDirectory)/TestResults \
-      #       -reporttypes:Cobertura \
-      #       -reportversion:1
-      #   displayName: 'Generate Cobertura Coverage'
-
-      # - script: |
-      #     dotnet tool install -g coverlet.console
-      #     coverlet ./YourTestProject/bin/$(buildConfiguration)/net9.0/YourTestProject.dll \
-      #       --target "dotnet" \
-      #       --targetargs "test --no-build --configuration $(buildConfiguration)" \
-      #       --format cobertura \
-      #       --output $(Build.SourcesDirectory)/TestResults/Cobertura.xml
-      #   displayName: 'Run Tests and Generate Cobertura Coverage with Coverlet'
-
       - script: |
-          coverlet ./MyWeatherForecastApp.Tests/bin/Release/net9.0/MyWeatherForecastApp.Tests.dll \
-            --target "dotnet" \
-            --targetargs "test ./MyWeatherForecastApp.Tests/MyWeatherForecastApp.Tests.csproj --no-build --configuration $(buildConfiguration)" \
-            --format cobertura \
-            --output $(Build.SourcesDirectory)/TestResults/Cobertura.xml
-        displayName: 'Run Tests and Generate Cobertura Coverage with Coverlet'
+          dotnet tool install -g dotnet-reportgenerator-globaltool
+          reportgenerator \
+            -reports:$(Build.SourcesDirectory)/TestResults/**/*.xml \
+            -targetdir:$(Build.SourcesDirectory)/TestResults \
+            -reporttypes:Cobertura \
+            -reportversion:1
+        displayName: 'Generate Cobertura Coverage'
 
 
       - script: |
