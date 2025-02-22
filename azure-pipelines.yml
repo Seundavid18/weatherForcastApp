@@ -92,23 +92,17 @@ jobs:
             -reporttypes:Cobertura
         displayName: 'Convert Coverage Report with ReportGenerator'
 
+      - script: |
+          echo "Fixing coverage version..."
+          sed -i 's/version="0"/version="1"/' $(Build.SourcesDirectory)/TestResults/ConvertedCoverage/Cobertura.xml
+          grep '<coverage' $(Build.SourcesDirectory)/TestResults/ConvertedCoverage/Cobertura.xml
+        displayName: 'Fix Coverage Report Version to 1'
+
       # Verify Coverage Output
       - script: |
           echo "Checking converted coverage file..."
           head -n 20 $(Build.SourcesDirectory)/TestResults/ConvertedCoverage/Cobertura.xml
         displayName: 'Preview Converted Coverage Report'
-
-      - script: |
-          echo "🔄 Fixing coverage version..."
-          sed -i 's/version="0"/version="1"/' $(Build.SourcesDirectory)/TestResults/ConvertedCoverage/Cobertura.xml
-          grep '<coverage' $(Build.SourcesDirectory)/TestResults/ConvertedCoverage/Cobertura.xml
-        displayName: 'Fix Coverage Report Version to 1'
-
-
-      # Force Version if Needed
-      # - script: |
-      #     sed -i 's/version="[0-9.]*"/version="1"/' $(Build.SourcesDirectory)/TestResults/ConvertedCoverage/Cobertura.xml
-      #   displayName: 'Force Converted Coverage Version to 1'
 
       # SonarCloud Prepare with Converted Coverage
       - task: SonarCloudPrepare@1
