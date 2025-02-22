@@ -40,7 +40,6 @@ jobs:
             -reports:$(Build.SourcesDirectory)/TestResults/**/*.xml \
             -targetdir:$(Build.SourcesDirectory)/TestResults \
             -reporttypes:Cobertura \
-            -reportfilename:coverage.cobertura.xml
             -reportversion:1
         displayName: 'Generate Cobertura Coverage'
 
@@ -68,7 +67,7 @@ jobs:
           cliSources: '.'
           extraProperties: |
             sonar.verbose=true
-            sonar.coverageReportPaths=**/TestResults/coverage.cobertura.xml
+            sonar.coverageReportPaths=$(Build.SourcesDirectory)/TestResults/67c19473-490d-44de-a72e-1a2786171c1c/coverage.cobertura.xml
         displayName: 'Prepare SonarCloud (Single Platform)'
 
       - task: SonarCloudAnalyze@1
