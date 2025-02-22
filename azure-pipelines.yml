@@ -34,15 +34,6 @@ jobs:
                       --results-directory $(Build.SourcesDirectory)/TestResults
         displayName: 'Run Unit Tests (Ubuntu Only)'
 
-      # - script: |
-      #     dotnet tool install -g dotnet-reportgenerator-globaltool
-      #     reportgenerator \
-      #       -reports:$(Build.SourcesDirectory)/TestResults/**/*.xml \
-      #       -targetdir:$(Build.SourcesDirectory)/TestResults \
-      #       -reporttypes:Cobertura \
-      #       -reportversion:1
-      #   displayName: 'Generate Cobertura Coverage'
-
       - script: |
           dotnet tool install --global coverlet.console
           coverlet ./MyWeatherForecastApp.Tests/bin/Release/net9.0/MyWeatherForecastApp.Tests.dll \
@@ -54,7 +45,7 @@ jobs:
 
 
       - script: |
-          sed -i 's/<coverage\(.*\)version="0"/<coverage\1version="1"/' $(Build.SourcesDirectory)/TestResults/coverage.cobertura.xml
+          sed -i 's/version="[0-9.]*"/version="1"/' $(Build.SourcesDirectory)/TestResults/coverage.cobertura.xml
         displayName: 'Force Coverage Version to 1'
 
       - script: |
