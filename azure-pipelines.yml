@@ -51,6 +51,11 @@ jobs:
       #     grep '<coverage' $(Build.SourcesDirectory)/Coverage_Single/Cobertura.xml
       #   displayName: 'Check Cobertura Version'
 
+      - script: |
+          echo "Verifying coverage report location..."
+          find $(Build.SourcesDirectory)/TestResults -name "*.xml"
+        displayName: 'Verify Coverage Report Path'
+
       - task: SonarCloudPrepare@1
         inputs:
           SonarCloud: 'Sonarcloud'
@@ -61,9 +66,8 @@ jobs:
           cliProjectName: 'weatherForcastApp'
           cliSources: '.'
           extraProperties: |
-            extraProperties: |
-              sonar.verbose=true
-              sonar.coverageReportPaths=**/TestResults/Cobertura.xml
+            sonar.verbose=true
+            sonar.coverageReportPaths=**/TestResults/coverage.cobertura.xml
         displayName: 'Prepare SonarCloud (Single Platform)'
 
       - task: SonarCloudAnalyze@1
