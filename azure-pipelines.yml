@@ -38,18 +38,18 @@ jobs:
           dotnet tool install -g dotnet-reportgenerator-globaltool
           reportgenerator \
             -reports:$(Build.SourcesDirectory)/TestResults/**/*.xml \
-            -targetdir:$(Build.SourcesDirectory)/Coverage_Single \
+            -targetdir:$(Build.SourcesDirectory)/TestResults \
             -reporttypes:Cobertura \
             -reportversion:1
         displayName: 'Generate Cobertura Coverage'
 
-      - script: |
-          sed -i 's/<coverage\(.*\)version="0"/<coverage\1version="1"/' $(Build.SourcesDirectory)/Coverage_Single/Cobertura.xml
-        displayName: 'Force Coverage Version to 1'
+      # - script: |
+      #     sed -i 's/<coverage\(.*\)version="0"/<coverage\1version="1"/' $(Build.SourcesDirectory)/Coverage_Single/Cobertura.xml
+      #   displayName: 'Force Coverage Version to 1'
 
-      - script: |
-          grep '<coverage' $(Build.SourcesDirectory)/Coverage_Single/Cobertura.xml
-        displayName: 'Check Cobertura Version'
+      # - script: |
+      #     grep '<coverage' $(Build.SourcesDirectory)/Coverage_Single/Cobertura.xml
+      #   displayName: 'Check Cobertura Version'
 
       - task: SonarCloudPrepare@1
         inputs:
@@ -63,7 +63,7 @@ jobs:
           extraProperties: |
             extraProperties: |
               sonar.verbose=true
-              sonar.coverageReportPaths=**/Coverage_Single/Cobertura.xml
+              sonar.coverageReportPaths=**/TestResults/Cobertura.xml
         displayName: 'Prepare SonarCloud (Single Platform)'
 
       - task: SonarCloudAnalyze@1
