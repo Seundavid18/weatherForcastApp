@@ -98,6 +98,11 @@ jobs:
           grep '<coverage' $(Build.SourcesDirectory)/TestResults/ConvertedCoverage/Cobertura.xml
         displayName: 'Fix Coverage Report Version to 1'
 
+      - script: |
+          echo "Removing <sources> block..."
+          sed -i '/<sources>/,/<\/sources>/d' $(Build.SourcesDirectory)/TestResults/ConvertedCoverage/Cobertura.xml
+        displayName: 'Remove <sources> block from coverage report'
+
       # Verify Coverage Output
       - script: |
           echo "Checking converted coverage file..."
