@@ -54,11 +54,11 @@ jobs:
 
 
       - script: |
-          sed -i 's/<coverage\(.*\)version="0"/<coverage\1version="1"/' $(Build.SourcesDirectory)/TestResults/Cobertura.xml
+          sed -i 's/<coverage\(.*\)version="0"/<coverage\1version="1"/' $(Build.SourcesDirectory)/TestResults/coverage.cobertura.xml
         displayName: 'Force Coverage Version to 1'
 
       - script: |
-          grep '<coverage' $(Build.SourcesDirectory)/TestResults/Cobertura.xml
+          grep '<coverage' $(Build.SourcesDirectory)/TestResults/coverage.cobertura.xml
         displayName: 'Verify Coverage Version'
 
       - script: |
@@ -77,7 +77,7 @@ jobs:
           cliSources: '.'
           extraProperties: |
             sonar.verbose=true
-            sonar.coverageReportPaths=$(Build.SourcesDirectory)/TestResults/Cobertura.xml
+            sonar.coverageReportPaths=$(Build.SourcesDirectory)/TestResults/coverage.cobertura.xml
         displayName: 'Prepare SonarCloud (Single Platform)'
 
       - task: SonarCloudAnalyze@1
