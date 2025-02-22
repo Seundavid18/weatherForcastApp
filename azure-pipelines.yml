@@ -88,7 +88,6 @@ jobs:
             -reports:$(Build.SourcesDirectory)/TestResults/coverage.cobertura.xml \
             -targetdir:$(Build.SourcesDirectory)/TestResults/ConvertedCoverage \
             -reporttypes:Cobertura \
-            -reportversion:4.0
         displayName: 'Generate Correct Cobertura Coverage Report'
 
       # Convert Coverage to Compatible Format
