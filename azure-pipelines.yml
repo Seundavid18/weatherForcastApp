@@ -53,15 +53,14 @@ jobs:
       #   displayName: 'Run Tests and Generate Cobertura Coverage with Coverlet'
 
       - script: |
-          dotnet tool install -g dotnet-reportgenerator-globaltool
-          reportgenerator \
-            -reports:$(Build.SourcesDirectory)/TestResults/**/*.xml \
-            -targetdir:$(Build.SourcesDirectory)/TestResults \
-            -reporttypes:CoberturaClassic \
-            -reportfilename:Cobertura.xml
-        displayName: 'Generate Cobertura Coverage (Classic Format)'
+          coverlet ./MyWeatherForecastApp.Tests/bin/Release/net9.0/MyWeatherForecastApp.Tests.dll \
+            --target "dotnet" \
+            --targetargs "test ./MyWeatherForecastApp.Tests/MyWeatherForecastApp.Tests.csproj --no-build --configuration $(buildConfiguration)" \
+            --format cobertura \
+            --output $(Build.SourcesDirectory)/TestResults/Cobertura.xml
+        displayName: 'Run Tests and Generate Cobertura Coverage with Coverlet'
 
-        
+
       - script: |
           sed -i 's/<coverage\(.*\)version="0"/<coverage\1version="1"/' $(Build.SourcesDirectory)/TestResults/Cobertura.xml
         displayName: 'Force Coverage Version to 1'
