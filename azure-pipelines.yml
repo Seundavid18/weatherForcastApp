@@ -92,6 +92,11 @@ jobs:
             -reporttypes:Cobertura
         displayName: 'Convert Coverage Report with ReportGenerator'
 
+      - script: |
+          echo "Checking for coverage report..."
+          ls -la $(Build.SourcesDirectory)/TestResults/ConvertedCoverage/
+        displayName: 'Check Coverage Report'
+
       # Verify Coverage Output
       - script: |
           echo "✅ Checking converted coverage file..."
