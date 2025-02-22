@@ -40,6 +40,7 @@ jobs:
             -reports:$(Build.SourcesDirectory)/TestResults/**/*.xml \
             -targetdir:$(Build.SourcesDirectory)/TestResults \
             -reporttypes:Cobertura \
+            -reportfilename:coverage.cobertura.xml
             -reportversion:1
         displayName: 'Generate Cobertura Coverage'
 
