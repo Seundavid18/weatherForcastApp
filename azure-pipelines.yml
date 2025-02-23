@@ -82,7 +82,7 @@ jobs:
 - job: Test_Analyze_Publish
   displayName: 'Test, Analyze, and Publish'
   dependsOn: Build
-  condition: eq(parameters.multi_platform_tests, true)
+  condition: and(succeeded(), eq('${{ parameters.multi_platform_tests }}', true)) 
   strategy:
     matrix:
       linux:
@@ -136,7 +136,7 @@ jobs:
 - job: Merge_And_Analyze
   displayName: 'Merge Coverage & Analyze with SonarCloud'
   dependsOn: Test_Analyze_Publish
-  condition: eq(parameters.multi_platform_tests, true)
+  condition: and(succeeded(), eq('${{ parameters.multi_platform_tests }}', true)) 
   pool:
     vmImage: 'ubuntu-latest'
 
