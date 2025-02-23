@@ -102,8 +102,8 @@ jobs:
     vmImage: $(vmImage)
 
   steps:
-    - download: current
-      artifact: BuildArtifacts
+    # - download: current
+    #   artifact: BuildArtifacts
 
     - task: UseDotNet@2
       inputs:
