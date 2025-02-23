@@ -234,11 +234,11 @@ jobs:
         find $(Pipeline.Workspace) -name "coverage.cobertura.xml"
       displayName: 'List Coverage Reports'
 
-    - script: |
-        echo "Fixing Cobertura report version..."
-        sed -i 's/version="0"/version="1"/' $(Build.SourcesDirectory)/merged_coverage/Cobertura.xml
-        grep '<coverage' $(Build.SourcesDirectory)/merged_coverage/Cobertura.xml
-      displayName: 'Fix Cobertura Report Version to 1'
+    # - script: |
+    #     echo "Fixing Cobertura report version..."
+    #     sed -i 's/version="0"/version="1"/' $(Build.SourcesDirectory)/merged_coverage/SonarQube.xml
+    #     grep '<coverage' $(Build.SourcesDirectory)/merged_coverage/Cobertura.xml
+    #   displayName: 'Fix Cobertura Report Version to 1'
 
     # - script: |
     #     coverage_file="$(Build.SourcesDirectory)/merged_coverage/Cobertura.xml"
@@ -265,7 +265,7 @@ jobs:
     # Verify Coverage Output
     - script: |
         echo "Checking converted coverage file..."
-        head -n 20 $(Build.SourcesDirectory)/merged_coverage/Cobertura.xml
+        head -n 20 $(Build.SourcesDirectory)/merged_coverage/SonarQube.xml
       displayName: 'Preview Converted Coverage Report'
  
     - task: SonarCloudPrepare@1
@@ -279,7 +279,7 @@ jobs:
         cliSources: '.'
         extraProperties: |
           sonar.verbose=true
-          sonar.coverageReportPaths=$(Build.SourcesDirectory)/merged_coverage/Cobertura_cleaned.xml
+          sonar.coverageReportPaths=$(Build.SourcesDirectory)/merged_coverage/SonarQube.xml
       displayName: 'Prepare SonarCloud (Merged Coverage)'
 
     - task: SonarCloudAnalyze@1
