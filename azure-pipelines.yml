@@ -5,7 +5,7 @@ parameters:
 - name: multi_platform_tests
   displayName: 'Run tests on both Windows and Linux'
   type: boolean
-  default: true
+  default: false
 
 variables:
   buildConfiguration: 'Release'
@@ -34,87 +34,18 @@ jobs:
                       --results-directory $(Build.SourcesDirectory)/TestResults
         displayName: 'Run Unit Tests (Ubuntu Only)'
 
-      # - script: |
-      #     dotnet tool install --global coverlet.console
-      #     coverlet ./MyWeatherForecastApp.Tests/bin/Release/net9.0/MyWeatherForecastApp.Tests.dll \
-      #       --target "dotnet" \
-      #       --targetargs "test --no-build --configuration $(buildConfiguration)" \
-      #       --output "$(Build.SourcesDirectory)/TestResults/coverage.cobertura.xml" \
-      #       --format cobertura
-      #   displayName: 'Run Tests and Generate Cobertura Coverage'
-
-
-      # - script: |
-      #     sed -i 's/version="[0-9.]*"/version="1"/' $(Build.SourcesDirectory)/TestResults/coverage.cobertura.xml
-      #   displayName: 'Force Coverage Version to 1'
-
-      # - script: |
-      #     grep '<coverage' $(Build.SourcesDirectory)/TestResults/coverage.cobertura.xml
-      #   displayName: 'Verify Coverage Version'
-
-      # - script: |
-      #     echo "Verifying coverage report location..."
-      #     find $(Build.SourcesDirectory)/TestResults -name "*.xml"
-      #   displayName: 'Verify Coverage Report Path'
-
-      # - task: SonarCloudPrepare@1
-      #   inputs:
-      #     SonarCloud: 'Sonarcloud'
-      #     organization: 'mini-bank-app'
-      #     scannerMode: 'CLI'
-      #     configMode: 'manual'
-      #     cliProjectKey: 'mini-bank-app_weatherforcastapp'
-      #     cliProjectName: 'weatherForcastApp'
-      #     cliSources: '.'
-      #     extraProperties: |
-      #       sonar.verbose=true
-      #       sonar.coverageReportPaths=$(Build.SourcesDirectory)/TestResults/coverage.cobertura.xml
-      #   displayName: 'Prepare SonarCloud (Single Platform)'
-
-      # # Run Tests & Generate Raw Coverage
-      # - script: |
-      #     dotnet tool install --global coverlet.console
-      #     export PATH="$PATH:~/.dotnet/tools"
-      #     coverlet ./MyWeatherForecastApp.Tests/bin/Release/net9.0/MyWeatherForecastApp.Tests.dll \
-      #       --target "dotnet" \
-      #       --targetargs "test --no-build --configuration $(buildConfiguration)" \
-      #       --output "$(Build.SourcesDirectory)/TestResults/coverage.cobertura.xml" \
-      #       --format cobertura
-      #   displayName: 'Run Tests and Generate Cobertura Coverage'
-
       - script: |
           dotnet tool install -g dotnet-reportgenerator-globaltool
           reportgenerator \
             -reports:$(Build.SourcesDirectory)/TestResults/coverage.cobertura.xml \
             -targetdir:$(Build.SourcesDirectory)/TestResults/ConvertedCoverage \
-            -reporttypes:Cobertura \
+            -reporttypes:SonarQube \
         displayName: 'Generate Correct Cobertura Coverage Report'
-
-      # Convert Coverage to Compatible Format
-      - script: |
-          dotnet tool install -g dotnet-reportgenerator-globaltool
-          export PATH="$PATH:~/.dotnet/tools"
-          reportgenerator \
-            -reports:$(Build.SourcesDirectory)/TestResults/coverage.cobertura.xml \
-            -targetdir:$(Build.SourcesDirectory)/TestResults/ConvertedCoverage \
-            -reporttypes:Cobertura
-        displayName: 'Convert Coverage Report with ReportGenerator'
-
-      - script: |
-          echo "Fixing coverage version..."
-          sed -i 's/version="0"/version="1"/' $(Build.SourcesDirectory)/TestResults/ConvertedCoverage/Cobertura.xml
-          grep '<coverage' $(Build.SourcesDirectory)/TestResults/ConvertedCoverage/Cobertura.xml
-        displayName: 'Fix Coverage Report Version to 1'
-
-      - script: |
-          echo "Removing <sources> block..."
-          sed -i '/<sources>/,/<\/sources>/d' $(Build.SourcesDirectory)/TestResults/ConvertedCoverage/Cobertura.xml
-        displayName: 'Remove <sources> block from coverage report'
 
       # Verify Coverage Output
       - script: |
           echo "Checking converted coverage file..."
-          head -n 20 $(Build.SourcesDirectory)/TestResults/ConvertedCoverage/Cobertura.xml
+          head -n 20 $(Build.SourcesDirectory)/TestResults/ConvertedCoverage/SonarQube.xml
         displayName: 'Preview Converted Coverage Report'
 
       # SonarCloud Prepare with Converted Coverage
@@ -129,7 +60,7 @@ jobs:
           cliSources: '.'
           extraProperties: |
             sonar.verbose=true
-            sonar.coverageReportPaths=$(Build.SourcesDirectory)/TestResults/ConvertedCoverage/Cobertura.xml
+            sonar.coverageReportPaths=$(Build.SourcesDirectory)/TestResults/ConvertedCoverage/SonarQube.xml
         displayName: 'Prepare SonarCloud (Single Platform)'
 
       - task: SonarCloudAnalyze@1
