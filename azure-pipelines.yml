@@ -5,7 +5,7 @@ parameters:
 - name: multi_platform_tests
   displayName: 'Run tests on both Windows and Linux'
   type: boolean
-  default: false
+  default: true
 
 variables:
   buildConfiguration: 'Release'
@@ -71,17 +71,17 @@ jobs:
           pollingTimeoutSec: '300'
         displayName: 'Publish SonarCloud Results (Single Platform)'
 
-    - task: DotNetCoreCLI@2
-      inputs:
-        command: 'publish'
-        publishWebProjects: true
-        arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)'
-        zipAfterPublish: true
-      displayName: 'Publish Application'
+      - task: DotNetCoreCLI@2
+        inputs:
+          command: 'publish'
+          publishWebProjects: true
+          arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)'
+          zipAfterPublish: true
+        displayName: 'Publish Application'
 
-    - publish: $(Build.ArtifactStagingDirectory)
-      artifact: drop
-      displayName: 'Publish Final Artifacts'
+      - publish: $(Build.ArtifactStagingDirectory)
+        artifact: drop
+        displayName: 'Publish Final Artifacts'
 
 
 - job: Multi_platform_test_true_test
