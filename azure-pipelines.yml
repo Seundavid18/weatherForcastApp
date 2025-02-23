@@ -225,7 +225,7 @@ jobs:
         dotnet tool install -g dotnet-reportgenerator-globaltool
         reportgenerator -reports:$(Pipeline.Workspace)/**/coverage.cobertura.xml \
                         -targetdir:$(Build.SourcesDirectory)/merged_coverage \
-                        -reporttypes:Cobertura \
+                        -reporttypes:SonarQube \
                         -sourcedirs:$(Build.SourcesDirectory)
       displayName: 'Merge Coverage Reports with Path Fix'
 
@@ -240,27 +240,27 @@ jobs:
         grep '<coverage' $(Build.SourcesDirectory)/merged_coverage/Cobertura.xml
       displayName: 'Fix Cobertura Report Version to 1'
 
-    - script: |
-        coverage_file="$(Build.SourcesDirectory)/merged_coverage/Cobertura.xml"
-        cleaned_coverage_file="$(Build.SourcesDirectory)/merged_coverage/Cobertura_cleaned.xml"
+    # - script: |
+    #     coverage_file="$(Build.SourcesDirectory)/merged_coverage/Cobertura.xml"
+    #     cleaned_coverage_file="$(Build.SourcesDirectory)/merged_coverage/Cobertura_cleaned.xml"
 
-        echo "Cleaning coverage report..."
+    #     echo "Cleaning coverage report..."
 
-        # Create new coverage file with required structure
-        {
-          echo '<?xml version="1.0" encoding="utf-8"?>'
-          echo '<coverage>'
-          # Extract class entries and convert them into file nodes
-          xmllint --xpath "//class" "$coverage_file" | \
-          sed -E 's/<class name="[^"]*" filename="([^"]*)"[^>]*>.*<lines>/<file path="\1">/g' | \
-          sed -E 's|</class>|</file>|g'
-          echo '</coverage>'
-        } > "$cleaned_coverage_file"
+    #     # Create new coverage file with required structure
+    #     {
+    #       echo '<?xml version="1.0" encoding="utf-8"?>'
+    #       echo '<coverage>'
+    #       # Extract class entries and convert them into file nodes
+    #       xmllint --xpath "//class" "$coverage_file" | \
+    #       sed -E 's/<class name="[^"]*" filename="([^"]*)"[^>]*>.*<lines>/<file path="\1">/g' | \
+    #       sed -E 's|</class>|</file>|g'
+    #       echo '</coverage>'
+    #     } > "$cleaned_coverage_file"
 
-        echo "Cleaned coverage report:"
-        head "$cleaned_coverage_file"
+    #     echo "Cleaned coverage report:"
+    #     head "$cleaned_coverage_file"
 
-      displayName: 'Transform Coverage Report for SonarCloud'
+    #   displayName: 'Transform Coverage Report for SonarCloud'
 
     # Verify Coverage Output
     - script: |
