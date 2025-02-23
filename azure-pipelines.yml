@@ -214,12 +214,21 @@ jobs:
     - download: current
       artifact: Coverage_windows-latest
 
+    # - script: |
+    #     dotnet tool install -g dotnet-reportgenerator-globaltool
+    #     reportgenerator -reports:$(Pipeline.Workspace)/**/coverage.cobertura.xml \
+    #                     -targetdir:$(Build.SourcesDirectory)/merged_coverage \
+    #                     -reporttypes:Cobertura
+    #   displayName: 'Merge Coverage Reports'
+
     - script: |
         dotnet tool install -g dotnet-reportgenerator-globaltool
         reportgenerator -reports:$(Pipeline.Workspace)/**/coverage.cobertura.xml \
                         -targetdir:$(Build.SourcesDirectory)/merged_coverage \
-                        -reporttypes:Cobertura
-      displayName: 'Merge Coverage Reports'
+                        -reporttypes:Cobertura \
+                        -sourcedirs:$(Build.SourcesDirectory)
+      displayName: 'Merge Coverage Reports with Path Fix'
+
 
     - script: |
         echo "Coverage reports found:"
