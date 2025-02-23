@@ -84,7 +84,7 @@ jobs:
       displayName: 'Publish Final Artifacts'
 
 
-- job: Test_Analyze_Publish
+- job: Multi_platform_test_true_test
   displayName: 'Test, Analyze, and Publish'
   dependsOn: Build
   condition: and(succeeded(), eq('${{ parameters.multi_platform_tests }}', true)) 
@@ -138,7 +138,7 @@ jobs:
       displayName: 'Publish Coverage Artifact ($(vmImage))'
 
 
-- job: Merge_And_Analyze
+- job: Multi_platform_test_true_merge_and_analyze
   displayName: 'Merge Coverage & Analyze with SonarCloud'
   dependsOn: Test_Analyze_Publish
   condition: and(succeeded(), eq('${{ parameters.multi_platform_tests }}', true)) 
