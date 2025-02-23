@@ -173,31 +173,23 @@ jobs:
         packageType: 'sdk'
         version: '9.x'
 
-    # - ${{ if eq(matrix.vmImage, 'windows-latest') }}:
-    #   - script: |
-    #       cd $(Build.SourcesDirectory)/MyWeatherForecastApp.Tests
-    #       dotnet test --configuration $(buildConfiguration) `
-    #                   --collect:"XPlat Code Coverage" `
-    #                   --results-directory $(coverageDir)
-    #     displayName: 'Run Tests on Windows'
-    #     shell: powershell
+    - ${{ if eq(matrix.vmImage, 'windows-latest') }}:
+      - script: |
+          cd $(Build.SourcesDirectory)/MyWeatherForecastApp.Tests
+          dotnet test --configuration $(buildConfiguration) `
+                      --collect:"XPlat Code Coverage" `
+                      --results-directory $(coverageDir)
+        displayName: 'Run Tests on Windows'
+        shell: powershell
 
-    # - ${{ if eq(matrix.vmImage, 'ubuntu-latest') }}:
-    #   - script: |
-    #       cd $(Build.SourcesDirectory)/MyWeatherForecastApp.Tests
-    #       dotnet test --configuration $(buildConfiguration) \
-    #                   --collect:"XPlat Code Coverage" \
-    #                   --results-directory $(coverageDir)
-    #     displayName: 'Run Tests on Linux'
-    #     shell: bash
-
-    - script: |
-        cd $(Build.SourcesDirectory)/MyWeatherForecastApp.Tests
-        dotnet test --configuration $(buildConfiguration) \
-                    --collect:"XPlat Code Coverage" \
-                    --results-directory $(coverageDir)
-      displayName: 'Run Tests on $(vmImage)'
-      shell: ${{ matrix.shell }}
+    - ${{ if eq(matrix.vmImage, 'ubuntu-latest') }}:
+      - script: |
+          cd $(Build.SourcesDirectory)/MyWeatherForecastApp.Tests
+          dotnet test --configuration $(buildConfiguration) \
+                      --collect:"XPlat Code Coverage" \
+                      --results-directory $(coverageDir)
+        displayName: 'Run Tests on Linux'
+        shell: bash
 
     - script: |
         echo "Verifying coverage files in $(coverageDir):"
@@ -228,6 +220,11 @@ jobs:
                         -targetdir:$(Build.SourcesDirectory)/merged_coverage \
                         -reporttypes:Cobertura
       displayName: 'Merge Coverage Reports'
+
+    - script: |
+        echo "Coverage reports found:"
+        find $(Pipeline.Workspace) -name "coverage.cobertura.xml"
+      displayName: 'List Coverage Reports'
 
     - task: SonarCloudPrepare@1
       inputs:
