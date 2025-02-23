@@ -71,21 +71,21 @@ jobs:
           pollingTimeoutSec: '300'
         displayName: 'Publish SonarCloud Results (Single Platform)'
 
-      - task: DotNetCoreCLI@2
-        inputs:
-          command: 'publish'
-          publishWebProjects: true
-          arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)'
-          zipAfterPublish: true
-        displayName: 'Publish Application'
+    - task: DotNetCoreCLI@2
+      inputs:
+        command: 'publish'
+        publishWebProjects: true
+        arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)'
+        zipAfterPublish: true
+      displayName: 'Publish Application'
 
-      - publish: $(Build.ArtifactStagingDirectory)
-        artifact: drop
-        displayName: 'Publish Final Artifacts'
+    - publish: $(Build.ArtifactStagingDirectory)
+      artifact: drop
+      displayName: 'Publish Final Artifacts'
 
 
 - job: Multi_platform_test_true_test
-  displayName: 'Test, Analyze, and Publish'
+  displayName: 'Test when multi_platform_tests is true'
   dependsOn: Build
   condition: and(succeeded(), eq('${{ parameters.multi_platform_tests }}', true)) 
   strategy:
@@ -139,7 +139,7 @@ jobs:
 
 
 - job: Multi_platform_test_true_merge_and_analyze
-  displayName: 'Merge Coverage & Analyze with SonarCloud'
+  displayName: 'Merge Coverage & Analyze with SonarCloud when multi_platform_tests is true'
   dependsOn: Multi_platform_test_true_test
   condition: and(succeeded(), eq('${{ parameters.multi_platform_tests }}', true)) 
   pool:
