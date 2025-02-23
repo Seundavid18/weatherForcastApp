@@ -162,7 +162,7 @@ jobs:
     maxParallel: 2
 
   pool:
-    vmImage: $(vmImage)  # ✅ Cleaner usage
+    vmImage: $(vmImage)
 
   steps:
     - download: current
@@ -174,14 +174,21 @@ jobs:
         version: '9.x'
 
     - script: |
+        cd $(Build.SourcesDirectory)/MyWeatherForecastApp.Tests
         dotnet test --configuration $(buildConfiguration) \
                     --collect:"XPlat Code Coverage" \
                     --results-directory $(coverageDir)
       displayName: 'Run Tests on $(vmImage)'
+      shell: ${{ eq(matrix.vmImage, 'windows-latest') && 'powershell' || 'bash' }}
+
+    - script: |
+        echo "Verifying coverage files in $(coverageDir):"
+        ls -R $(coverageDir)
+      displayName: 'Verify Coverage Files'
 
     - publish: $(coverageDir)
       artifact: Coverage_$(vmImage)
-      displayName: 'Publish Coverage ($(vmImage))'
+      displayName: 'Publish Coverage Artifact ($(vmImage))'
 
 
 - job: Merge_And_Analyze
