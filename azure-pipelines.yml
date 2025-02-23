@@ -37,7 +37,7 @@ jobs:
       - script: |
           dotnet tool install -g dotnet-reportgenerator-globaltool
           reportgenerator \
-            -reports:$(Build.SourcesDirectory)/TestResults/coverage.cobertura.xml \
+            -reports:$(Build.SourcesDirectory)/TestResults/*/coverage.cobertura.xml \
             -targetdir:$(Build.SourcesDirectory)/TestResults/ConvertedCoverage \
             -reporttypes:SonarQube \
         displayName: 'Generate Correct Cobertura Coverage Report'
@@ -145,13 +145,6 @@ jobs:
     - download: current
       artifact: Coverage_windows-latest
 
-    # - script: |
-    #     dotnet tool install -g dotnet-reportgenerator-globaltool
-    #     reportgenerator -reports:$(Pipeline.Workspace)/**/coverage.cobertura.xml \
-    #                     -targetdir:$(Build.SourcesDirectory)/merged_coverage \
-    #                     -reporttypes:Cobertura
-    #   displayName: 'Merge Coverage Reports'
-
     - script: |
         dotnet tool install -g dotnet-reportgenerator-globaltool
         reportgenerator -reports:$(Pipeline.Workspace)/**/coverage.cobertura.xml \
@@ -165,33 +158,6 @@ jobs:
         find $(Pipeline.Workspace) -name "coverage.cobertura.xml"
       displayName: 'List Coverage Reports'
 
-    # - script: |
-    #     echo "Fixing Cobertura report version..."
-    #     sed -i 's/version="0"/version="1"/' $(Build.SourcesDirectory)/merged_coverage/SonarQube.xml
-    #     grep '<coverage' $(Build.SourcesDirectory)/merged_coverage/Cobertura.xml
-    #   displayName: 'Fix Cobertura Report Version to 1'
-
-    # - script: |
-    #     coverage_file="$(Build.SourcesDirectory)/merged_coverage/Cobertura.xml"
-    #     cleaned_coverage_file="$(Build.SourcesDirectory)/merged_coverage/Cobertura_cleaned.xml"
-
-    #     echo "Cleaning coverage report..."
-
-    #     # Create new coverage file with required structure
-    #     {
-    #       echo '<?xml version="1.0" encoding="utf-8"?>'
-    #       echo '<coverage>'
-    #       # Extract class entries and convert them into file nodes
-    #       xmllint --xpath "//class" "$coverage_file" | \
-    #       sed -E 's/<class name="[^"]*" filename="([^"]*)"[^>]*>.*<lines>/<file path="\1">/g' | \
-    #       sed -E 's|</class>|</file>|g'
-    #       echo '</coverage>'
-    #     } > "$cleaned_coverage_file"
-
-    #     echo "Cleaned coverage report:"
-    #     head "$cleaned_coverage_file"
-
-    #   displayName: 'Transform Coverage Report for SonarCloud'
 
     # Verify Coverage Output
     - script: |
