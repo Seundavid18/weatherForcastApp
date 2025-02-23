@@ -173,13 +173,31 @@ jobs:
         packageType: 'sdk'
         version: '9.x'
 
+    # - ${{ if eq(matrix.vmImage, 'windows-latest') }}:
+    #   - script: |
+    #       cd $(Build.SourcesDirectory)/MyWeatherForecastApp.Tests
+    #       dotnet test --configuration $(buildConfiguration) `
+    #                   --collect:"XPlat Code Coverage" `
+    #                   --results-directory $(coverageDir)
+    #     displayName: 'Run Tests on Windows'
+    #     shell: powershell
+
+    # - ${{ if eq(matrix.vmImage, 'ubuntu-latest') }}:
+    #   - script: |
+    #       cd $(Build.SourcesDirectory)/MyWeatherForecastApp.Tests
+    #       dotnet test --configuration $(buildConfiguration) \
+    #                   --collect:"XPlat Code Coverage" \
+    #                   --results-directory $(coverageDir)
+    #     displayName: 'Run Tests on Linux'
+    #     shell: bash
+
     - script: |
         cd $(Build.SourcesDirectory)/MyWeatherForecastApp.Tests
         dotnet test --configuration $(buildConfiguration) \
                     --collect:"XPlat Code Coverage" \
                     --results-directory $(coverageDir)
       displayName: 'Run Tests on $(vmImage)'
-      shell: ${{ eq(matrix.vmImage, 'windows-latest') && 'powershell' || 'bash' }}
+      shell: ${{ matrix.shell }}
 
     - script: |
         echo "Verifying coverage files in $(coverageDir):"
