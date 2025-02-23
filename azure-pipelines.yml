@@ -240,18 +240,23 @@ jobs:
         grep '<coverage' $(Build.SourcesDirectory)/merged_coverage/Cobertura.xml
       displayName: 'Fix Cobertura Report Version to 1'
 
+    - script: |
+        # Remove <sources> block
+        sed -i '/<sources>/,/<\/sources>/d' $(Build.SourcesDirectory)/merged_coverage/Cobertura.xml
+
+        # Remove <packages> tags but keep inner content
+        sed -i 's/<packages>//g; s/<\/packages>//g' $(Build.SourcesDirectory)/merged_coverage/Cobertura.xml
+
+        echo "Cleaned Cobertura.xml:"
+        grep -A 10 '<coverage' $(Build.SourcesDirectory)/merged_coverage/Cobertura.xml
+      displayName: 'Clean Cobertura Report for SonarCloud'
+
     # Verify Coverage Output
     - script: |
         echo "Checking converted coverage file..."
         head -n 20 $(Build.SourcesDirectory)/merged_coverage/Cobertura.xml
       displayName: 'Preview Converted Coverage Report'
-
-    - script: |
-        sed -i '/<sources>/,/<\/sources>/d' $(Build.SourcesDirectory)/merged_coverage/Cobertura.xml
-        echo "Cleaned Cobertura.xml (removed <sources> tags):"
-        grep -A 5 '<coverage' $(Build.SourcesDirectory)/merged_coverage/Cobertura.xml
-      displayName: 'Clean Cobertura Report for SonarCloud'
-    
+ 
     - task: SonarCloudPrepare@1
       inputs:
         SonarCloud: 'Sonarcloud'
