@@ -5,7 +5,7 @@ parameters:
 - name: multi_platform_tests
   displayName: 'Run tests on both Windows and Linux'
   type: boolean
-  default: true
+  default: false
 
 variables:
   buildConfiguration: 'Release'
@@ -42,13 +42,11 @@ jobs:
             -reporttypes:SonarQube \
         displayName: 'Generate Correct Cobertura Coverage Report'
 
-      # Verify Coverage Output
       - script: |
           echo "Checking converted coverage file..."
           head -n 20 $(Build.SourcesDirectory)/TestResults/ConvertedCoverage/SonarQube.xml
         displayName: 'Preview Converted Coverage Report'
 
-      # SonarCloud Prepare with Converted Coverage
       - task: SonarCloudPrepare@1
         inputs:
           SonarCloud: 'Sonarcloud'
@@ -139,7 +137,7 @@ jobs:
 
 
 - job: Multi_platform_test_true_merge_and_analyze
-  displayName: 'Merge Coverage & Analyze with SonarCloud when multi_platform_tests is true'
+  displayName: 'Merge Coverage & Analyze with SonarCloud & Publish when multi_platform_tests is true'
   dependsOn: Multi_platform_test_true_test
   condition: and(succeeded(), eq('${{ parameters.multi_platform_tests }}', true)) 
   pool:
@@ -164,8 +162,6 @@ jobs:
         find $(Pipeline.Workspace) -name "coverage.cobertura.xml"
       displayName: 'List Coverage Reports'
 
-
-    # Verify Coverage Output
     - script: |
         echo "Checking converted coverage file..."
         head -n 20 $(Build.SourcesDirectory)/merged_coverage/SonarQube.xml
@@ -204,74 +200,3 @@ jobs:
     - publish: $(Build.ArtifactStagingDirectory)
       artifact: drop
       displayName: 'Publish Final Artifacts'
-
-
-# trigger:
-# - main
-
-# pool:
-#   vmImage: 'ubuntu-latest'
-
-# variables:
-#   buildConfiguration: 'Release'
-
-# steps:
-# - task: UseDotNet@2
-#   inputs:
-#     packageType: 'sdk'
-#     version: '9.x'
-
-# - script: |
-#     dotnet restore
-#     dotnet build --configuration $(buildConfiguration)
-#   displayName: 'Restore and Build'
-
-# - script: |
-#     dotnet test --configuration $(buildConfiguration) --collect:"XPlat Code Coverage" --results-directory $(Build.SourcesDirectory)/TestResults
-#   displayName: 'Run Tests with Coverage'
-
-# - script: |
-#     dotnet tool install -g dotnet-reportgenerator-globaltool
-#     reportgenerator -reports:$(Build.SourcesDirectory)/TestResults/**/*.xml \
-#                     -targetdir:$(Build.SourcesDirectory)/Coverage_Linux \
-#                     -reporttypes:Cobertura \
-#                     -assemblyfilters:+* -filefilters:+* -classfilters:+*
-#   displayName: 'Convert Coverage to Cobertura'
-
-# - script: |
-#     head -n 10 $(Build.SourcesDirectory)/Coverage_Linux/*.xml
-#   displayName: 'Inspect Coverage Report Header'
-
-# - task: SonarCloudPrepare@1
-#   inputs:
-#     SonarCloud: 'Sonarcloud'
-#     organization: 'mini-bank-app'
-#     scannerMode: 'CLI'
-#     configMode: 'manual'
-#     cliProjectKey: 'mini-bank-app_weatherforcastapp'
-#     cliProjectName: 'weatherForcastApp'
-#     cliSources: '.'
-#     extraProperties: |
-#       sonar.verbose=true
-#       sonar.javascript.lcov.reportPaths=$(Pipeline.Workspace)/Coverage_Linux/lcov.info
-#       sonar.coverageReportPaths=$(Build.SourcesDirectory)/Coverage_Linux/Cobertura.xml
-#       sonar.exclusions=**/*.flow
-  
-# - task: SonarCloudAnalyze@1
-#   displayName: "Analyze with SonarCloud"
-
-# - task: SonarCloudPublish@1
-#   inputs:
-#     pollingTimeoutSec: '300'
-#   displayName: 'Publish SonarCloud Results'
-
-# - task: DotNetCoreCLI@2
-#   inputs:
-#     command: 'publish'
-#     publishWebProjects: true
-#     arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)'
-#     zipAfterPublish: true
-
-# - publish: $(Build.ArtifactStagingDirectory)
-#   artifact: drop
-
