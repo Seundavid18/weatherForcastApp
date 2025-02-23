@@ -241,15 +241,26 @@ jobs:
       displayName: 'Fix Cobertura Report Version to 1'
 
     - script: |
-        # Remove <sources> block
-        sed -i '/<sources>/,/<\/sources>/d' $(Build.SourcesDirectory)/merged_coverage/Cobertura.xml
+        coverage_file="$(Build.SourcesDirectory)/merged_coverage/Cobertura.xml"
+        cleaned_coverage_file="$(Build.SourcesDirectory)/merged_coverage/Cobertura_cleaned.xml"
 
-        # Remove <packages> tags but keep inner content
-        sed -i 's/<packages>//g; s/<\/packages>//g' $(Build.SourcesDirectory)/merged_coverage/Cobertura.xml
+        echo "Cleaning coverage report..."
 
-        echo "Cleaned Cobertura.xml:"
-        grep -A 10 '<coverage' $(Build.SourcesDirectory)/merged_coverage/Cobertura.xml
-      displayName: 'Clean Cobertura Report for SonarCloud'
+        # Create new coverage file with required structure
+        {
+          echo '<?xml version="1.0" encoding="utf-8"?>'
+          echo '<coverage>'
+          # Extract class entries and convert them into file nodes
+          xmllint --xpath "//class" "$coverage_file" | \
+          sed -E 's/<class name="[^"]*" filename="([^"]*)"[^>]*>.*<lines>/<file path="\1">/g' | \
+          sed -E 's|</class>|</file>|g'
+          echo '</coverage>'
+        } > "$cleaned_coverage_file"
+
+        echo "Cleaned coverage report:"
+        head "$cleaned_coverage_file"
+
+      displayName: 'Transform Coverage Report for SonarCloud'
 
     # Verify Coverage Output
     - script: |
@@ -268,7 +279,7 @@ jobs:
         cliSources: '.'
         extraProperties: |
           sonar.verbose=true
-          sonar.coverageReportPaths=$(Build.SourcesDirectory)/merged_coverage/Cobertura.xml
+          sonar.coverageReportPaths=$(Build.SourcesDirectory)/merged_coverage/Cobertura_cleaned.xml
       displayName: 'Prepare SonarCloud (Merged Coverage)'
 
     - task: SonarCloudAnalyze@1
