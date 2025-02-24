@@ -34,6 +34,10 @@ jobs:
                       --results-directory $(Build.SourcesDirectory)/TestResults
         displayName: 'Run Unit Tests (Ubuntu Only)'
 
+      - publish: $(Build.SourcesDirectory)/TestResults
+        artifact: Coverage_$(vmImage)
+        displayName: 'Publish Coverage Artifact ($(vmImage))'
+
       - script: |
           dotnet tool install -g dotnet-reportgenerator-globaltool
           reportgenerator \
@@ -82,7 +86,7 @@ jobs:
         displayName: 'Publish Final Artifacts'
 
 
-- job: Multi_platform_test_true_test
+- job: Multi_platform_test_true
   displayName: 'Test when multi_platform_tests is true'
   dependsOn: Build
   condition: and(succeeded(), eq('${{ parameters.multi_platform_tests }}', true)) 
