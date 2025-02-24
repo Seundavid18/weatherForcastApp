@@ -5,7 +5,7 @@ parameters:
 - name: multi_platform_tests
   displayName: 'Run tests on both Windows and Linux'
   type: boolean
-  default: false
+  default: true
 
 variables:
   buildConfiguration: 'Release'
@@ -44,12 +44,7 @@ jobs:
             -reports:$(Build.SourcesDirectory)/TestResults/*/coverage.cobertura.xml \
             -targetdir:$(Build.SourcesDirectory)/TestResults/ConvertedCoverage \
             -reporttypes:SonarQube \
-        displayName: 'Generate Correct Cobertura Coverage Report'
-
-      - script: |
-          echo "Checking converted coverage file..."
-          head -n 20 $(Build.SourcesDirectory)/TestResults/ConvertedCoverage/SonarQube.xml
-        displayName: 'Preview Converted Coverage Report'
+        displayName: 'Generate Cobertura Coverage Report'
 
       - task: SonarCloudPrepare@1
         inputs:
@@ -161,16 +156,6 @@ jobs:
                         -reporttypes:SonarQube \
                         -sourcedirs:$(Build.SourcesDirectory)
       displayName: 'Merge Coverage Reports with Path Fix'
-
-    - script: |
-        echo "Coverage reports found:"
-        find $(Pipeline.Workspace) -name "coverage.cobertura.xml"
-      displayName: 'List Coverage Reports'
-
-    - script: |
-        echo "Checking converted coverage file..."
-        head -n 20 $(Build.SourcesDirectory)/merged_coverage/SonarQube.xml
-      displayName: 'Preview Converted Coverage Report'
  
     - task: SonarCloudPrepare@1
       inputs:
