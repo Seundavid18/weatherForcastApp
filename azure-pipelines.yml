@@ -142,8 +142,8 @@ jobs:
 
 
 - job: Multi_platform_test_true_merge_and_analyze
-  displayName: 'Merge Coverage & Analyze with SonarCloud & Publish when multi_platform_tests is true'
-  dependsOn: Multi_platform_test_true_test
+  displayName: 'Merge Coverage, Analyze with SonarCloud & Publish when multi_platform_tests is true'
+  dependsOn: Multi_platform_test_true
   condition: and(succeeded(), eq('${{ parameters.multi_platform_tests }}', true)) 
   pool:
     vmImage: 'ubuntu-latest'
