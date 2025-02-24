@@ -35,8 +35,8 @@ jobs:
         displayName: 'Run Unit Tests (Ubuntu Only)'
 
       - publish: $(Build.SourcesDirectory)/TestResults
-        artifact: Coverage_$(vmImage)
-        displayName: 'Publish Coverage Artifact ($(vmImage))'
+        artifact: Coverage_ubuntu
+        displayName: 'Publish Coverage Artifact'
 
       - script: |
           dotnet tool install -g dotnet-reportgenerator-globaltool
