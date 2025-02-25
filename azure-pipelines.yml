@@ -126,6 +126,17 @@ jobs:
       displayName: 'Run Tests on Linux'
       condition: eq(variables['Agent.OS'], 'Linux')
 
+    - ${{ if eq(parameters.os, 'linux') }}:
+      - template: ../templates/steps/general/gitversion.yaml
+        parameters:
+          git_version_directory: '${{ parameters.git_version_directory }}'
+
+    # Windows template
+    - ${{ if eq(parameters.os, 'windows') }}:
+      - template: ../templates/steps/general/gitversion-win.yaml
+        parameters:
+          git_version_directory: '${{ parameters.git_version_directory }}'
+
     - script: |
         echo "Verifying coverage files in $(coverageDir):"
         ls -R $(coverageDir)
