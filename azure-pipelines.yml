@@ -88,11 +88,11 @@ jobs:
   strategy:
     matrix:
       linux:
-        os: 'linux'
+        osName: 'linux'
         vmImage: 'ubuntu-latest'
         coverageDir: '$(System.DefaultWorkingDirectory)/TestResults/linux'
       windows:
-        os: 'windows'
+        osName: 'windows'
         vmImage: 'windows-latest'
         coverageDir: '$(System.DefaultWorkingDirectory)/TestResults/windows'
     maxParallel: 2
@@ -100,8 +100,8 @@ jobs:
   pool:
     vmImage: $(vmImage)
 
-  parameters:
-    os: $[ variables['os'] ] 
+  variables:
+    osName: $[ variables['osName'] ]  
 
   steps:
     # - download: current
@@ -131,13 +131,13 @@ jobs:
       displayName: 'Run Tests on Linux'
       condition: eq(variables['Agent.OS'], 'Linux')
 
-    - ${{ if eq(parameters.os, 'linux') }}:
+    - ${{ if eq(variables['osName'], 'linux') }}:
       - template: ../templates/steps/general/gitversion.yaml
         parameters:
           git_version_directory: '${{ parameters.git_version_directory }}'
 
     # Windows template
-    - ${{ if eq(parameters.os, 'windows') }}:
+    - ${{ if eq(variables['osName'], 'windows') }}:
       - template: ../templates/steps/general/gitversion-win.yaml
         parameters:
           git_version_directory: '${{ parameters.git_version_directory }}'
