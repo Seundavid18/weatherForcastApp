@@ -88,9 +88,11 @@ jobs:
   strategy:
     matrix:
       linux:
+        os: 'linux'
         vmImage: 'ubuntu-latest'
         coverageDir: '$(System.DefaultWorkingDirectory)/TestResults/linux'
       windows:
+        os: 'windows'
         vmImage: 'windows-latest'
         coverageDir: '$(System.DefaultWorkingDirectory)/TestResults/windows'
     maxParallel: 2
