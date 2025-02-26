@@ -224,20 +224,10 @@ jobs:
         cd $(Build.SourcesDirectory)/MyWeatherForecastApp.Tests
         dotnet test --configuration $(buildConfiguration) \
                     --collect:"XPlat Code Coverage" \
-                    --results-directory $(Pipeline.Workspace)/TestResults
+                    --results-directory $(System.DefaultWorkingDirectory)/TestResults/linux
       displayName: 'Run Tests on Linux'
 
-    - task: PublishTestResults@2
-      inputs:
-        testResultsFormat: 'VSTest'
-        testResultsFiles: '**/TestResults/*.trx'
-        failTaskOnFailedTests: true
-      displayName: 'Publish Linux Test Results'
-
-    - publish: $(Pipeline.Workspace)/TestResults
-      artifact: linux-test-results
-
-    - publish: $(Pipeline.Workspace)/TestResults/**/coverage.cobertura.xml
+    - publish: $(System.DefaultWorkingDirectory)/TestResults/linux
       artifact: linux-coverage
 
 - job: Windows_Tests
@@ -255,20 +245,10 @@ jobs:
         cd $(Build.SourcesDirectory)/MyWeatherForecastApp.Tests
         dotnet test --configuration $(buildConfiguration) `
                     --collect:"XPlat Code Coverage" `
-                    --results-directory $(Pipeline.Workspace)/TestResults
+                    --results-directory $(System.DefaultWorkingDirectory)/TestResults/linux
       displayName: 'Run Tests on Windows'
 
-    - task: PublishTestResults@2
-      inputs:
-        testResultsFormat: 'VSTest'
-        testResultsFiles: '**/TestResults/*.trx'
-        failTaskOnFailedTests: true
-      displayName: 'Publish Windows Test Results'
-
-    - publish: $(Pipeline.Workspace)/TestResults
-      artifact: windows-test-results
-
-    - publish: $(Pipeline.Workspace)/TestResults/**/coverage.cobertura.xml
+    - publish: $(System.DefaultWorkingDirectory)/TestResults/linux
       artifact: windows-coverage
 
 - job: Merge_And_SonarCloud_Analysis
@@ -282,10 +262,6 @@ jobs:
     vmImage: 'ubuntu-latest'
   steps:
     - download: current
-      artifact: linux-test-results
-    - download: current
-      artifact: windows-test-results
-    - download: current
       artifact: linux-coverage
     - download: current
       artifact: windows-coverage
@@ -295,26 +271,15 @@ jobs:
       inputs:
         targetType: 'inline'
         script: |
-          dotnet tool install -g dotnet-reportgenerator-globaltool --version 5.*
+          dotnet tool install -g dotnet-reportgenerator-globaltool
+          reportgenerator -reports:$(Pipeline.Workspace)/**/coverage.cobertura.xml \
+                          -targetdir:$(Build.SourcesDirectory)/merged_coverage \
+                          -reporttypes:SonarQube \
+                          -sourcedirs:$(Build.SourcesDirectory)
+        displayName: 'Merge Coverage Reports with Path Fix'
 
-          $outputDir = "$(Build.ArtifactStagingDirectory)/merged-coverage"
-          New-Item -ItemType Directory -Force -Path $outputDir
-
-          $coverageFiles = Get-ChildItem -Path "$(Pipeline.Workspace)" -Recurse -Include *.xml | Where-Object { $_.Name -like "*coverage*" }
-          $trxFiles = Get-ChildItem -Path "$(Pipeline.Workspace)" -Recurse -Include *.trx
-
-          Write-Host "Found coverage files:"; $coverageFiles | ForEach-Object { Write-Host $_.FullName }
-          Write-Host "Found TRX files:"; $trxFiles | ForEach-Object { Write-Host $_.FullName }
-
-          reportgenerator `
-            "-reports:$($coverageFiles.FullName -join ';')" `
-            "-targetdir:$outputDir" `
-            "-reporttypes:Cobertura"
-
-          Copy-Item "$outputDir/Cobertura.xml" "$outputDir/coverage.cobertura.xml"
-
-    - publish: $(Build.ArtifactStagingDirectory)/merged-coverage
-      artifact: merged-coverage
+    - publish: $(Build.ArtifactStagingDirectory)/merged_coverage
+      artifact: merged_coverage
 
     - task: SonarCloudPrepare@1
       inputs:
@@ -326,8 +291,8 @@ jobs:
         cliProjectName: 'weatherForcastApp'
         cliSources: '.'
         extraProperties: |
-            sonar.cs.opencover.reportsPaths=$(Build.ArtifactStagingDirectory)/merged-coverage/coverage.cobertura.xml
-            sonar.cs.vstest.reportsPaths=$(Pipeline.Workspace)/TestResults/*.trx
+          sonar.verbose=true
+          sonar.coverageReportPaths=$(Build.SourcesDirectory)/merged_coverage/SonarQube.xml
 
     - task: SonarCloudAnalyze@1
       displayName: 'Analyze with SonarCloud (Merged Coverage)'
