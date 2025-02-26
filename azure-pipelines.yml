@@ -228,7 +228,7 @@ jobs:
       displayName: 'Run Tests on Linux'
 
     - script: |
-        echo "Verifying coverage files in TestResults/linux:"
+        echo "Verifying coverage files in linux:"
         ls -R $(System.DefaultWorkingDirectory)/TestResults/linux
       displayName: 'Verify Coverage Files'
 
@@ -255,11 +255,11 @@ jobs:
       displayName: 'Run Tests on Windows'
 
     - script: |
-        echo "Verifying coverage files in TestResults/windows:"
+        echo "Verifying coverage files in windows:"
         ls -R $(System.DefaultWorkingDirectory)/TestResults/windows
       displayName: 'Verify Coverage Files'
 
-    - publish: $(System.DefaultWorkingDirectory)/TestResults/linux
+    - publish: $(System.DefaultWorkingDirectory)/TestResults/windows
       artifact: windows-coverage
       displayName: 'Publish Coverage Artifact windows'
 
