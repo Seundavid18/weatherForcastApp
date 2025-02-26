@@ -211,6 +211,7 @@ jobs:
 
 - job: Linux_Tests
   displayName: 'Run All Tests on Linux Container'
+  dependsOn: Build
   condition: eq('${{ parameters.multi_platform_tests }}', true)
   pool:
     vmImage: 'ubuntu-latest'
@@ -241,6 +242,7 @@ jobs:
 
 - job: Windows_Tests
   displayName: 'Run All Tests on Windows Container'
+  dependsOn: Build
   condition: eq('${{ parameters.multi_platform_tests }}', true)
   pool:
     vmImage: 'windows-latest'
@@ -269,9 +271,10 @@ jobs:
     - publish: $(Pipeline.Workspace)/TestResults/**/coverage.cobertura.xml
       artifact: windows-coverage
 
-- job: Merge_And_SonarQube_Analysis
-  displayName: 'Merge Reports & SonarQube Analysis'
+- job: Merge_And_SonarCloud_Analysis
+  displayName: 'Merge Reports & SonarCloud Analysis'
   dependsOn:
+    - Build
     - Linux_Tests
     - Windows_Tests
   condition: eq('${{ parameters.multi_platform_tests }}', true)
@@ -288,7 +291,7 @@ jobs:
       artifact: windows-coverage
 
     - task: PowerShell@2
-      displayName: 'Merge Coverage & TRX Reports'
+      displayName: 'Merge Coverage'
       inputs:
         targetType: 'inline'
         script: |
