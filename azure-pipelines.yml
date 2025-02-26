@@ -276,7 +276,7 @@ jobs:
                         -sourcedirs:$(Build.SourcesDirectory)
       displayName: 'Merge Coverage Reports with Path Fix'
 
-    - publish: $(Build.ArtifactStagingDirectory)/merged_coverage
+    - publish: $(Build.SourcesDirectory)/merged_coverage 
       artifact: merged_coverage
 
     - task: SonarCloudPrepare@1
