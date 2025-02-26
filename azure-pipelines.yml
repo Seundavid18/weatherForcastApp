@@ -229,6 +229,7 @@ jobs:
 
     - publish: $(System.DefaultWorkingDirectory)/TestResults/linux
       artifact: linux-coverage
+      displayName: 'Publish Coverage Artifact linux'
 
 - job: Windows_Tests
   displayName: 'Run All Tests on Windows Container'
@@ -250,6 +251,7 @@ jobs:
 
     - publish: $(System.DefaultWorkingDirectory)/TestResults/linux
       artifact: windows-coverage
+      displayName: 'Publish Coverage Artifact windows'
 
 - job: Merge_And_SonarCloud_Analysis
   displayName: 'Merge Reports & SonarCloud Analysis'
@@ -272,10 +274,10 @@ jobs:
         targetType: 'inline'
         script: |
           dotnet tool install -g dotnet-reportgenerator-globaltool
-          reportgenerator -reports:$(Pipeline.Workspace)/**/coverage.cobertura.xml \
-                          -targetdir:$(Build.SourcesDirectory)/merged_coverage \
-                          -reporttypes:SonarQube \
-                          -sourcedirs:$(Build.SourcesDirectory)
+          reportgenerator -reports $(Pipeline.Workspace)/**/coverage.cobertura.xml `
+                          -targetdir $(Build.SourcesDirectory)/merged_coverage `
+                          -reporttypes SonarQube `
+                          -sourcedirs $(Build.SourcesDirectory)
         displayName: 'Merge Coverage Reports with Path Fix'
 
     - publish: $(Build.ArtifactStagingDirectory)/merged_coverage
