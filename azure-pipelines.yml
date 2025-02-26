@@ -227,6 +227,11 @@ jobs:
                     --results-directory $(System.DefaultWorkingDirectory)/TestResults/linux
       displayName: 'Run Tests on Linux'
 
+    - script: |
+        echo "Verifying coverage files in TestResults/linux:"
+        ls -R $(System.DefaultWorkingDirectory)/TestResults/linux
+      displayName: 'Verify Coverage Files'
+
     - publish: $(System.DefaultWorkingDirectory)/TestResults/linux
       artifact: linux-coverage
       displayName: 'Publish Coverage Artifact linux'
@@ -248,6 +253,11 @@ jobs:
                     --collect:"XPlat Code Coverage" `
                     --results-directory $(System.DefaultWorkingDirectory)/TestResults/linux
       displayName: 'Run Tests on Windows'
+
+    - script: |
+        echo "Verifying coverage files in TestResults/windows:"
+        ls -R $(System.DefaultWorkingDirectory)/TestResults/windows
+      displayName: 'Verify Coverage Files'
 
     - publish: $(System.DefaultWorkingDirectory)/TestResults/linux
       artifact: windows-coverage
