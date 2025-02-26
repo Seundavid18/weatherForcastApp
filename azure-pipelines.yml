@@ -81,98 +81,238 @@ jobs:
         displayName: 'Publish Final Artifacts'
 
 
-- job: Multi_platform_test_true
-  displayName: 'Test when multi_platform_tests is true'
-  dependsOn: Build
-  condition: and(succeeded(), eq('${{ parameters.multi_platform_tests }}', true)) 
-  strategy:
-    matrix:
-      linux:
-        osName: 'linux'
-        vmImage: 'ubuntu-latest'
-        coverageDir: '$(System.DefaultWorkingDirectory)/TestResults/linux'
-      windows:
-        osName: 'windows'
-        vmImage: 'windows-latest'
-        coverageDir: '$(System.DefaultWorkingDirectory)/TestResults/windows'
-    maxParallel: 2
+# - job: Multi_platform_test_true
+#   displayName: 'Test when multi_platform_tests is true'
+#   dependsOn: Build
+#   condition: and(succeeded(), eq('${{ parameters.multi_platform_tests }}', true)) 
+#   strategy:
+#     matrix:
+#       linux:
+#         osName: 'linux'
+#         vmImage: 'ubuntu-latest'
+#         coverageDir: '$(System.DefaultWorkingDirectory)/TestResults/linux'
+#       windows:
+#         osName: 'windows'
+#         vmImage: 'windows-latest'
+#         coverageDir: '$(System.DefaultWorkingDirectory)/TestResults/windows'
+#     maxParallel: 2
 
+#   pool:
+#     vmImage: $(vmImage)
+
+#   variables:
+#     osName: $[ variables['osName'] ]  
+
+#   steps:
+#     # - download: current
+#     #   artifact: BuildArtifacts
+
+#     - task: UseDotNet@2
+#       inputs:
+#         packageType: 'sdk'
+#         version: '9.x'
+
+#     # Run tests on Windows
+#     - powershell: |
+#         cd $(Build.SourcesDirectory)/MyWeatherForecastApp.Tests
+#         dotnet test --configuration $(buildConfiguration) `
+#                     --collect:"XPlat Code Coverage" `
+#                     --results-directory $(coverageDir)
+#       displayName: 'Run Tests on Windows'
+#       condition: eq(variables['Agent.OS'], 'Windows_NT')
+#       continueOnError: true
+
+#     # Run tests on Linux
+#     - bash: |
+#         cd $(Build.SourcesDirectory)/MyWeatherForecastApp.Tests
+#         dotnet test --configuration $(buildConfiguration) \
+#                     --collect:"XPlat Code Coverage" \
+#                     --results-directory $(coverageDir)
+#       displayName: 'Run Tests on Linux'
+#       condition: eq(variables['Agent.OS'], 'Linux')
+
+#     - script: |
+#         echo "Verifying coverage files in $(coverageDir):"
+#         ls -R $(coverageDir)
+#       displayName: 'Verify Coverage Files'
+
+#     - publish: $(coverageDir)
+#       artifact: Coverage_$(vmImage)
+#       displayName: 'Publish Coverage Artifact ($(vmImage))'
+
+
+# - job: Multi_platform_test_true_merge_and_analyze
+#   displayName: 'Merge Coverage, Analyze with SonarCloud & Publish when multi_platform_tests is true'
+#   dependsOn: Multi_platform_test_true
+#   condition: and(succeeded(), eq('${{ parameters.multi_platform_tests }}', true)) 
+#   pool:
+#     vmImage: 'ubuntu-latest'
+
+#   steps:
+#     - download: current
+#       artifact: Coverage_ubuntu-latest
+#     - download: current
+#       artifact: Coverage_windows-latest
+
+#     - script: |
+#         dotnet tool install -g dotnet-reportgenerator-globaltool
+#         reportgenerator -reports:$(Pipeline.Workspace)/**/coverage.cobertura.xml \
+#                         -targetdir:$(Build.SourcesDirectory)/merged_coverage \
+#                         -reporttypes:SonarQube \
+#                         -sourcedirs:$(Build.SourcesDirectory)
+#       displayName: 'Merge Coverage Reports with Path Fix'
+ 
+#     - task: SonarCloudPrepare@1
+#       inputs:
+#         SonarCloud: 'Sonarcloud'
+#         organization: 'mini-bank-app'
+#         scannerMode: 'CLI'
+#         configMode: 'manual'
+#         cliProjectKey: 'mini-bank-app_weatherforcastapp'
+#         cliProjectName: 'weatherForcastApp'
+#         cliSources: '.'
+#         extraProperties: |
+#           sonar.verbose=true
+#           sonar.coverageReportPaths=$(Build.SourcesDirectory)/merged_coverage/SonarQube.xml
+#       displayName: 'Prepare SonarCloud (Merged Coverage)'
+
+#     - task: SonarCloudAnalyze@1
+#       displayName: 'Analyze with SonarCloud (Merged Coverage)'
+
+#     - task: SonarCloudPublish@1
+#       inputs:
+#         pollingTimeoutSec: '300'
+#       displayName: 'Publish SonarCloud Results (Merged Coverage)'
+
+#     - task: DotNetCoreCLI@2
+#       inputs:
+#         command: 'publish'
+#         publishWebProjects: true
+#         arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)'
+#         zipAfterPublish: true
+#       displayName: 'Publish Application'
+
+#     - publish: $(Build.ArtifactStagingDirectory)
+#       artifact: drop
+#       displayName: 'Publish Final Artifacts'
+
+
+# trigger:
+#   - main
+
+# parameters:
+#   - name: multi_platform_tests
+#     displayName: 'Run tests on both Windows and Linux'
+#     type: boolean
+#     default: true
+
+# variables:
+#   buildConfiguration: 'Release'
+
+- job: Linux_Tests
+  displayName: 'Run All Tests on Linux Container'
+  condition: eq('${{ parameters.multi_platform_tests }}', true)
   pool:
-    vmImage: $(vmImage)
-
-  variables:
-    osName: $[ variables['osName'] ]  
-
+    vmImage: 'ubuntu-latest'
+  container:
+    image: 'mcr.microsoft.com/dotnet/sdk:8.0'
   steps:
-    # - download: current
-    #   artifact: BuildArtifacts
+    - checkout: self
 
-    - task: UseDotNet@2
-      inputs:
-        packageType: 'sdk'
-        version: '9.x'
-
-    # Run tests on Windows
-    - powershell: |
-        cd $(Build.SourcesDirectory)/MyWeatherForecastApp.Tests
-        dotnet test --configuration $(buildConfiguration) `
-                    --collect:"XPlat Code Coverage" `
-                    --results-directory $(coverageDir)
-      displayName: 'Run Tests on Windows'
-      condition: eq(variables['Agent.OS'], 'Windows_NT')
-      continueOnError: true
-
-    # Run tests on Linux
     - bash: |
         cd $(Build.SourcesDirectory)/MyWeatherForecastApp.Tests
         dotnet test --configuration $(buildConfiguration) \
                     --collect:"XPlat Code Coverage" \
-                    --results-directory $(coverageDir)
+                    --results-directory $(Pipeline.Workspace)/TestResults
       displayName: 'Run Tests on Linux'
-      condition: eq(variables['Agent.OS'], 'Linux')
 
-    - ${{ if eq(variables['osName'], 'linux') }}:
-      - template: ../templates/steps/general/gitversion.yaml
-        parameters:
-          git_version_directory: '${{ parameters.git_version_directory }}'
+    - task: PublishTestResults@2
+      inputs:
+        testResultsFormat: 'VSTest'
+        testResultsFiles: '**/TestResults/*.trx'
+        failTaskOnFailedTests: true
+      displayName: 'Publish Linux Test Results'
 
-    # Windows template
-    - ${{ if eq(variables['osName'], 'windows') }}:
-      - template: ../templates/steps/general/gitversion-win.yaml
-        parameters:
-          git_version_directory: '${{ parameters.git_version_directory }}'
+    - publish: $(Pipeline.Workspace)/TestResults
+      artifact: linux-test-results
 
-    - script: |
-        echo "Verifying coverage files in $(coverageDir):"
-        ls -R $(coverageDir)
-      displayName: 'Verify Coverage Files'
+    - publish: $(Pipeline.Workspace)/TestResults/**/coverage.cobertura.xml
+      artifact: linux-coverage
 
-    - publish: $(coverageDir)
-      artifact: Coverage_$(vmImage)
-      displayName: 'Publish Coverage Artifact ($(vmImage))'
+- job: Windows_Tests
+  displayName: 'Run All Tests on Windows Container'
+  condition: eq('${{ parameters.multi_platform_tests }}', true)
+  pool:
+    vmImage: 'windows-latest'
+  container:
+    image: 'mcr.microsoft.com/dotnet/sdk:8.0-nanoserver-ltsc2022'
+  steps:
+    - checkout: self
 
+    - powershell: |
+        cd $(Build.SourcesDirectory)/MyWeatherForecastApp.Tests
+        dotnet test --configuration $(buildConfiguration) `
+                    --collect:"XPlat Code Coverage" `
+                    --results-directory $(Pipeline.Workspace)/TestResults
+      displayName: 'Run Tests on Windows'
 
-- job: Multi_platform_test_true_merge_and_analyze
-  displayName: 'Merge Coverage, Analyze with SonarCloud & Publish when multi_platform_tests is true'
-  dependsOn: Multi_platform_test_true
-  condition: and(succeeded(), eq('${{ parameters.multi_platform_tests }}', true)) 
+    - task: PublishTestResults@2
+      inputs:
+        testResultsFormat: 'VSTest'
+        testResultsFiles: '**/TestResults/*.trx'
+        failTaskOnFailedTests: true
+      displayName: 'Publish Windows Test Results'
+
+    - publish: $(Pipeline.Workspace)/TestResults
+      artifact: windows-test-results
+
+    - publish: $(Pipeline.Workspace)/TestResults/**/coverage.cobertura.xml
+      artifact: windows-coverage
+
+- job: Merge_And_SonarQube_Analysis
+  displayName: 'Merge Reports & SonarQube Analysis'
+  dependsOn:
+    - Linux_Tests
+    - Windows_Tests
+  condition: eq('${{ parameters.multi_platform_tests }}', true)
   pool:
     vmImage: 'ubuntu-latest'
-
   steps:
     - download: current
-      artifact: Coverage_ubuntu-latest
+      artifact: linux-test-results
     - download: current
-      artifact: Coverage_windows-latest
+      artifact: windows-test-results
+    - download: current
+      artifact: linux-coverage
+    - download: current
+      artifact: windows-coverage
 
-    - script: |
-        dotnet tool install -g dotnet-reportgenerator-globaltool
-        reportgenerator -reports:$(Pipeline.Workspace)/**/coverage.cobertura.xml \
-                        -targetdir:$(Build.SourcesDirectory)/merged_coverage \
-                        -reporttypes:SonarQube \
-                        -sourcedirs:$(Build.SourcesDirectory)
-      displayName: 'Merge Coverage Reports with Path Fix'
- 
+    - task: PowerShell@2
+      displayName: 'Merge Coverage & TRX Reports'
+      inputs:
+        targetType: 'inline'
+        script: |
+          dotnet tool install -g dotnet-reportgenerator-globaltool --version 5.*
+
+          $outputDir = "$(Build.ArtifactStagingDirectory)/merged-coverage"
+          New-Item -ItemType Directory -Force -Path $outputDir
+
+          $coverageFiles = Get-ChildItem -Path "$(Pipeline.Workspace)" -Recurse -Include *.xml | Where-Object { $_.Name -like "*coverage*" }
+          $trxFiles = Get-ChildItem -Path "$(Pipeline.Workspace)" -Recurse -Include *.trx
+
+          Write-Host "Found coverage files:"; $coverageFiles | ForEach-Object { Write-Host $_.FullName }
+          Write-Host "Found TRX files:"; $trxFiles | ForEach-Object { Write-Host $_.FullName }
+
+          reportgenerator `
+            "-reports:$($coverageFiles.FullName -join ';')" `
+            "-targetdir:$outputDir" `
+            "-reporttypes:Cobertura"
+
+          Copy-Item "$outputDir/Cobertura.xml" "$outputDir/coverage.cobertura.xml"
+
+    - publish: $(Build.ArtifactStagingDirectory)/merged-coverage
+      artifact: merged-coverage
+
     - task: SonarCloudPrepare@1
       inputs:
         SonarCloud: 'Sonarcloud'
@@ -183,9 +323,8 @@ jobs:
         cliProjectName: 'weatherForcastApp'
         cliSources: '.'
         extraProperties: |
-          sonar.verbose=true
-          sonar.coverageReportPaths=$(Build.SourcesDirectory)/merged_coverage/SonarQube.xml
-      displayName: 'Prepare SonarCloud (Merged Coverage)'
+            sonar.cs.opencover.reportsPaths=$(Build.ArtifactStagingDirectory)/merged-coverage/coverage.cobertura.xml
+            sonar.cs.vstest.reportsPaths=$(Pipeline.Workspace)/TestResults/*.trx
 
     - task: SonarCloudAnalyze@1
       displayName: 'Analyze with SonarCloud (Merged Coverage)'
@@ -206,3 +345,5 @@ jobs:
     - publish: $(Build.ArtifactStagingDirectory)
       artifact: drop
       displayName: 'Publish Final Artifacts'
+
+
