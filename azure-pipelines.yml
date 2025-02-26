@@ -246,7 +246,7 @@ jobs:
         cd $(Build.SourcesDirectory)/MyWeatherForecastApp.Tests
         dotnet test --configuration $(buildConfiguration) `
                     --collect:"XPlat Code Coverage" `
-                    --results-directory $(System.DefaultWorkingDirectory)/TestResults/linux
+                    --results-directory $(System.DefaultWorkingDirectory)/TestResults/windows
       displayName: 'Run Tests on Windows'
 
     - publish: $(System.DefaultWorkingDirectory)/TestResults/windows
