@@ -51,12 +51,12 @@ jobs:
 
       # Convert coverage to SonarQube format
       - script: |
-        dotnet tool install -g dotnet-reportgenerator-globaltool
-        reportgenerator \
-          -reports:$(Build.SourcesDirectory)/TestResults/**/coverage.cobertura.xml \
-          -targetdir:$(Build.SourcesDirectory)/TestResults/ConvertedCoverage \
-          -reporttypes:SonarQube
-      displayName: 'Generate Cobertura Coverage Report'
+          dotnet tool install -g dotnet-reportgenerator-globaltool
+          reportgenerator \
+            -reports:$(Build.SourcesDirectory)/TestResults/**/coverage.cobertura.xml \
+            -targetdir:$(Build.SourcesDirectory)/TestResults/ConvertedCoverage \
+            -reporttypes:SonarQube
+        displayName: 'Generate Cobertura Coverage Report'
 
       - task: SonarCloudPrepare@1
         inputs:
