@@ -30,20 +30,32 @@ jobs:
     - ${{ if eq(parameters.multi_platform_tests, false) }}:
       - script: |
           dotnet test --configuration $(buildConfiguration) \
+                      --logger:"trx;LogFileName=test_results.trx" \
                       --collect:"XPlat Code Coverage" \
                       --results-directory $(Build.SourcesDirectory)/TestResults
         displayName: 'Run Unit Tests (Ubuntu Only)'
 
-      - publish: $(Build.SourcesDirectory)/TestResults
-        artifact: Coverage_ubuntu
-        displayName: 'Publish Coverage Artifact'
+      # Verify test results (debugging step)
+      - script: |
+          ls -R $(Build.SourcesDirectory)/TestResults
+        displayName: 'Verify Test Results & Coverage Report'
 
+      # Publish test results (for visibility in Azure DevOps)
+      - task: PublishTestResults@2
+        inputs:
+          testResultsFiles: '$(Build.SourcesDirectory)/TestResults/test_results.trx'
+          testRunTitle: 'Unit Tests'
+          mergeTestResults: true
+        condition: succeededOrFailed()
+        displayName: 'Publish Test Results'
+
+      # Convert coverage to SonarQube format
       - script: |
           dotnet tool install -g dotnet-reportgenerator-globaltool
           reportgenerator \
             -reports:$(Build.SourcesDirectory)/TestResults/*/coverage.cobertura.xml \
             -targetdir:$(Build.SourcesDirectory)/TestResults/ConvertedCoverage \
-            -reporttypes:SonarQube \
+            -reporttypes:SonarQube
         displayName: 'Generate Cobertura Coverage Report'
 
       - task: SonarCloudPrepare@1
