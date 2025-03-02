@@ -67,6 +67,11 @@ jobs:
           fi
         displayName: 'Verify Coverage Report'
 
+      - script: |
+          echo "SonarQube Coverage Report:"
+          cat $(Build.SourcesDirectory)/TestResults/ConvertedCoverage/SonarQube.xml
+        displayName: 'Debug SonarQube.xml'
+
       - task: SonarCloudPrepare@1
         inputs:
           SonarCloud: 'Sonarcloud'
