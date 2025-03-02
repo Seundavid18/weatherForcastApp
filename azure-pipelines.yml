@@ -53,10 +53,19 @@ jobs:
       - script: |
           dotnet tool install -g dotnet-reportgenerator-globaltool
           reportgenerator \
-            -reports:$(Build.SourcesDirectory)/TestResults/**/coverage.cobertura.xml \
+            -reports:$(Build.SourcesDirectory)/TestResults/*/coverage.cobertura.xml \
             -targetdir:$(Build.SourcesDirectory)/TestResults/ConvertedCoverage \
             -reporttypes:SonarQube
         displayName: 'Generate Cobertura Coverage Report'
+
+      - script: |
+          echo "Checking if coverage report exists..."
+          ls -R $(Build.SourcesDirectory)/TestResults/
+          if [ ! -f $(Build.SourcesDirectory)/TestResults/ConvertedCoverage/SonarQube.xml ]; then
+            echo "ERROR: Coverage report not found!"
+            exit 1
+          fi
+        displayName: 'Verify Coverage Report'
 
       - task: SonarCloudPrepare@1
         inputs:
@@ -69,7 +78,7 @@ jobs:
           cliSources: '.'
           extraProperties: |
             sonar.verbose=true
-            sonar.coverageReportPaths=$(Build.SourcesDirectory)/TestResults/**/coverage.cobertura.xml
+            sonar.coverageReportPaths=$(Build.SourcesDirectory)/TestResults/ConvertedCoverage/SonarQube.xml
         displayName: 'Prepare SonarCloud'
 
       - task: SonarCloudAnalyze@1
